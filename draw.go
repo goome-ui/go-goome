@@ -384,7 +384,10 @@ func (b *Bitmap) Pixels() []uint32 {
 }
 
 type Font struct {
-	f *C.goome_font
+	f     *C.goome_font
+	fb    []*Font
+	users int
+	freed bool
 }
 
 func wrapFont(f *C.goome_font, what string) (*Font, error) {
@@ -430,27 +433,61 @@ func SystemFont(name string) (*Font, error) {
 }
 
 func (f *Font) Free() {
-	if f == nil || f.f == nil {
+	if f == nil || f.f == nil || f.freed {
 		return
 	}
 	for _, u := range liveUIs {
 		u.forgetFont(f)
 	}
+	f.freed = true
+	runtime.SetFinalizer(f, nil)
+	f.release()
+}
+
+func (f *Font) release() {
+	if f.users > 0 || f.f == nil {
+		return
+	}
 	unpin(unsafe.Pointer(f.f))
 	C.goome_font_free(f.f)
 	f.f = nil
-	runtime.SetFinalizer(f, nil)
+	for _, b := range f.fb {
+		b.users--
+		if b.freed {
+			b.release()
+		}
+	}
+	f.fb = nil
 }
 
 func (f *Font) raw() *C.goome_font {
 	if f == nil {
 		return nil
 	}
-	if f.f == nil {
+	if f.f == nil || f.freed {
 		panic(&Error{Code: CodeGone, Msg: "this font is freed"})
 	}
 	return f.f
 }
+
+func (f *Font) Fallback(fallback *Font) {
+	p, b := f.raw(), fallback.raw()
+	if b == nil || b == p {
+		return
+	}
+	for _, x := range f.fb {
+		if x == fallback {
+			return
+		}
+	}
+	C.goome_font_fallback(p, b)
+	f.fb = append(f.fb, fallback)
+	fallback.users++
+}
+
+func (f *Font) Fallbacks() []*Font { return append([]*Font(nil), f.fb...) }
+
+func SetTextDir(dir int) { C.goome_text_dir(C.int(dir)) }
 
 func (f *Font) Measure(text string, size float64) (w, h float64) {
 	cs := C.CString(text)
