@@ -10,6 +10,7 @@
 
 <p align="center">
   <img src="https://goome-ui.github.io/docs/assets/badges/go-123.svg" alt="Go 1.23+">
+  <a href="https://pkg.go.dev/github.com/goome-ui/go-goome"><img src="https://goome-ui.github.io/docs/assets/badges/go-get.svg" alt="go get"></a>
   <img src="https://goome-ui.github.io/docs/assets/badges/cgo-one-file.svg" alt="cgo, one file">
   <img src="https://goome-ui.github.io/docs/assets/badges/dependencies-none.svg" alt="no dependencies">
   <img src="https://img.shields.io/badge/Linux-X11%20%2B%20Wayland-1b1d22?style=flat-square&logo=linux&logoColor=white" alt="Linux">
@@ -108,11 +109,11 @@ Go cant really get inside a game for mods, the other bindings do that part. <a h
 <br>
 
 ```sh
-go get github.com/goome-ui/go-goome@dev
+go get github.com/goome-ui/go-goome@latest
 ```
 
 <p align="center">
-Go 1.23 or newer, with cgo on. The first build compiles goome with your C compiler, that takes a bit, after that Go caches it.<br> <br>
+Thats the newest release, <code>@v0.5.0</code> pins one and <code>@dev</code> gets the newest code. Go 1.23 or newer, with cgo on. The first build compiles goome with your C compiler, that takes a bit, after that Go caches it.<br> <br>
 On Debian/Ubuntu thats <code>sudo apt install build-essential</code>, on Mac <code>xcode-select --install</code>, on Windows <a href="https://www.mingw-w64.org/">mingw-w64</a> gcc on your PATH. If cgo is off (<code>CGO_ENABLED=0</code>, or no compiler on Windows) turn it on with <code>CGO_ENABLED=1</code>.<br> <br>
 goome loads everything it needs at runtime, so theres no <code>-l</code> flags, no pkg-config and nothing to ship next to your exe.
 </p>
