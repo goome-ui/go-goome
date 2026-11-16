@@ -218,7 +218,16 @@ func (u *UI) Hit(x, y, w, h float64) {
 	C.goome_ui_hit(u.h(), C.double(x), C.double(y), C.double(w), C.double(h))
 }
 
-func (u *UI) Animating() bool  { return C.goome_ui_animating(u.h()) > 0 }
+func (u *UI) Animating() bool { return C.goome_ui_animating(u.h()) > 0 }
+
+func (u *UI) Anim(id string, target, ms float64, ease int) float64 {
+	return float64(C.goome_ui_anim(u.h(), u.a.str(id), C.double(target), C.double(ms), C.int(ease)))
+}
+
+func (u *UI) AnimColor(id string, target uint32, ms float64, ease int) uint32 {
+	return uint32(C.goome_ui_anim_color(u.h(), u.a.str(id), C.uint32_t(target), C.double(ms), C.int(ease)))
+}
+
 func (u *UI) Wants() int       { return int(C.goome_ui_wants(u.h())) }
 func (u *UI) WantsMouse() bool { return u.Wants()&WantMouse != 0 }
 func (u *UI) WantsKeyboard() bool {

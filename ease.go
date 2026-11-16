@@ -2,6 +2,7 @@ package goome
 
 /*
 #include <stdint.h>
+#include "native/goome.h"
 */
 import "C"
 
@@ -15,3 +16,5 @@ func goomeGoEase(t C.double, user C.uintptr_t) C.double {
 	}
 	return C.double(f(float64(t)))
 }
+
+func Ease(kind int, t float64) float64 { return float64(C.goome_ease(C.int(kind), C.double(t))) }
