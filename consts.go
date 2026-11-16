@@ -56,6 +56,8 @@ const (
 	EventClose           = C.GOOME_CLOSE
 	EventFocus           = C.GOOME_FOCUS
 	EventDrop            = C.GOOME_DROP
+	EventText            = C.GOOME_TEXT
+	EventPreedit         = C.GOOME_PREEDIT
 	CursorArrow          = C.GOOME_CURSOR_ARROW
 	CursorIBeam          = C.GOOME_CURSOR_IBEAM
 	CursorHand           = C.GOOME_CURSOR_HAND
@@ -100,6 +102,9 @@ const (
 	FmtRGBAPremul        = C.GOOME_FMT_RGBA_PREMUL
 	FmtBGRA              = C.GOOME_FMT_BGRA
 	FmtRGBA              = C.GOOME_FMT_RGBA
+	DirAuto              = C.GOOME_DIR_AUTO
+	DirLTR               = C.GOOME_DIR_LTR
+	DirRTL               = C.GOOME_DIR_RTL
 	IconArrowDown        = C.GOOME_ICON_ARROW_DOWN
 	IconArrowRight       = C.GOOME_ICON_ARROW_RIGHT
 	IconArrowUp          = C.GOOME_ICON_ARROW_UP
@@ -228,6 +233,9 @@ const (
 	EaseInOut            = C.GOOME_EASE_IN_OUT
 	EaseBack             = C.GOOME_EASE_BACK
 	EaseCustom           = C.GOOME_EASE_CUSTOM
+	EaseIn               = C.GOOME_EASE_IN
+	EaseSpring           = C.GOOME_EASE_SPRING
+	EaseBounce           = C.GOOME_EASE_BOUNCE
 	SkinButton           = C.GOOME_SKIN_BUTTON
 	SkinPanel            = C.GOOME_SKIN_PANEL
 	SkinInput            = C.GOOME_SKIN_INPUT
@@ -282,6 +290,31 @@ const (
 	CurCustomY           = C.GOOME_CUR_CUSTOM_Y
 	CurCustomXy          = C.GOOME_CUR_CUSTOM_XY
 	CurCount             = C.GOOME_CUR_COUNT
+	RoleNone             = C.GOOME_ROLE_NONE
+	RoleWindow           = C.GOOME_ROLE_WINDOW
+	RoleButton           = C.GOOME_ROLE_BUTTON
+	RoleCheckbox         = C.GOOME_ROLE_CHECKBOX
+	RoleRadio            = C.GOOME_ROLE_RADIO
+	RoleSlider           = C.GOOME_ROLE_SLIDER
+	RoleText             = C.GOOME_ROLE_TEXT
+	RoleInput            = C.GOOME_ROLE_INPUT
+	RoleCombo            = C.GOOME_ROLE_COMBO
+	RoleList             = C.GOOME_ROLE_LIST
+	RoleItem             = C.GOOME_ROLE_ITEM
+	RoleTab              = C.GOOME_ROLE_TAB
+	RoleMenu             = C.GOOME_ROLE_MENU
+	RoleMenuItem         = C.GOOME_ROLE_MENUITEM
+	RoleTable            = C.GOOME_ROLE_TABLE
+	RoleTree             = C.GOOME_ROLE_TREE
+	RoleProgress         = C.GOOME_ROLE_PROGRESS
+	RoleImage            = C.GOOME_ROLE_IMAGE
+	RoleGroup            = C.GOOME_ROLE_GROUP
+	RoleDialog           = C.GOOME_ROLE_DIALOG
+	A11yFocused          = C.GOOME_A11Y_FOCUSED
+	A11yChecked          = C.GOOME_A11Y_CHECKED
+	A11yDisabled         = C.GOOME_A11Y_DISABLED
+	A11yExpanded         = C.GOOME_A11Y_EXPANDED
+	A11ySelected         = C.GOOME_A11Y_SELECTED
 )
 
 var cConsts = map[string]int{
@@ -335,6 +368,8 @@ var cConsts = map[string]int{
 	"GOOME_CLOSE":                    EventClose,
 	"GOOME_FOCUS":                    EventFocus,
 	"GOOME_DROP":                     EventDrop,
+	"GOOME_TEXT":                     EventText,
+	"GOOME_PREEDIT":                  EventPreedit,
 	"GOOME_CURSOR_ARROW":             CursorArrow,
 	"GOOME_CURSOR_IBEAM":             CursorIBeam,
 	"GOOME_CURSOR_HAND":              CursorHand,
@@ -379,6 +414,9 @@ var cConsts = map[string]int{
 	"GOOME_FMT_RGBA_PREMUL":          FmtRGBAPremul,
 	"GOOME_FMT_BGRA":                 FmtBGRA,
 	"GOOME_FMT_RGBA":                 FmtRGBA,
+	"GOOME_DIR_AUTO":                 DirAuto,
+	"GOOME_DIR_LTR":                  DirLTR,
+	"GOOME_DIR_RTL":                  DirRTL,
 	"GOOME_ICON_ARROW_DOWN":          IconArrowDown,
 	"GOOME_ICON_ARROW_RIGHT":         IconArrowRight,
 	"GOOME_ICON_ARROW_UP":            IconArrowUp,
@@ -507,6 +545,9 @@ var cConsts = map[string]int{
 	"GOOME_EASE_IN_OUT":              EaseInOut,
 	"GOOME_EASE_BACK":                EaseBack,
 	"GOOME_EASE_CUSTOM":              EaseCustom,
+	"GOOME_EASE_IN":                  EaseIn,
+	"GOOME_EASE_SPRING":              EaseSpring,
+	"GOOME_EASE_BOUNCE":              EaseBounce,
 	"GOOME_SKIN_BUTTON":              SkinButton,
 	"GOOME_SKIN_PANEL":               SkinPanel,
 	"GOOME_SKIN_INPUT":               SkinInput,
@@ -561,4 +602,29 @@ var cConsts = map[string]int{
 	"GOOME_CUR_CUSTOM_Y":             CurCustomY,
 	"GOOME_CUR_CUSTOM_XY":            CurCustomXy,
 	"GOOME_CUR_COUNT":                CurCount,
+	"GOOME_ROLE_NONE":                RoleNone,
+	"GOOME_ROLE_WINDOW":              RoleWindow,
+	"GOOME_ROLE_BUTTON":              RoleButton,
+	"GOOME_ROLE_CHECKBOX":            RoleCheckbox,
+	"GOOME_ROLE_RADIO":               RoleRadio,
+	"GOOME_ROLE_SLIDER":              RoleSlider,
+	"GOOME_ROLE_TEXT":                RoleText,
+	"GOOME_ROLE_INPUT":               RoleInput,
+	"GOOME_ROLE_COMBO":               RoleCombo,
+	"GOOME_ROLE_LIST":                RoleList,
+	"GOOME_ROLE_ITEM":                RoleItem,
+	"GOOME_ROLE_TAB":                 RoleTab,
+	"GOOME_ROLE_MENU":                RoleMenu,
+	"GOOME_ROLE_MENUITEM":            RoleMenuItem,
+	"GOOME_ROLE_TABLE":               RoleTable,
+	"GOOME_ROLE_TREE":                RoleTree,
+	"GOOME_ROLE_PROGRESS":            RoleProgress,
+	"GOOME_ROLE_IMAGE":               RoleImage,
+	"GOOME_ROLE_GROUP":               RoleGroup,
+	"GOOME_ROLE_DIALOG":              RoleDialog,
+	"GOOME_A11Y_FOCUSED":             A11yFocused,
+	"GOOME_A11Y_CHECKED":             A11yChecked,
+	"GOOME_A11Y_DISABLED":            A11yDisabled,
+	"GOOME_A11Y_EXPANDED":            A11yExpanded,
+	"GOOME_A11Y_SELECTED":            A11ySelected,
 }

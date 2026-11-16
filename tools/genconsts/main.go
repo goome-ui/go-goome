@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-var events = strings.Fields("NONE DOWN UP MOTION SCROLL KEY HOTKEY CONTROL MONITORS QUIT CLOSE FOCUS DROP")
+var events = strings.Fields("NONE DOWN UP MOTION SCROLL KEY HOTKEY CONTROL MONITORS QUIT CLOSE FOCUS DROP TEXT PREEDIT")
 var backends = strings.Fields("AUTO WAYLAND GNOME PORTAL X11 WIN32 MACOS TEST OFFSCREEN")
 var codes = map[string]string{"OK": "OK", "ENOTSUP": "CodeNotSupported", "EDENIED": "CodeDenied", "ENODISPLAY": "CodeNoDisplay", "EGONE": "CodeGone", "EAGAIN": "CodeAgain", "ENOMEM": "CodeNoMem", "EARG": "CodeArg"}
 var mods = map[string]string{"SHIFT": "Shift", "CTRL": "Ctrl", "ALT": "Alt", "SUPER": "Super"}
-var upper = map[string]string{"UI": "UI", "FPS": "FPS", "ID": "ID", "RGBA": "RGBA", "BGRA": "BGRA", "ARGB": "ARGB", "OK": "OK", "EW": "EW", "NS": "NS", "NWSE": "NWSE", "NESW": "NESW", "PGUP": "PgUp", "PGDN": "PgDn", "IBEAM": "IBeam", "MACOS": "MacOS"}
+var upper = map[string]string{"UI": "UI", "FPS": "FPS", "ID": "ID", "RGBA": "RGBA", "BGRA": "BGRA", "ARGB": "ARGB", "OK": "OK", "EW": "EW", "NS": "NS", "NWSE": "NWSE", "NESW": "NESW", "PGUP": "PgUp", "PGDN": "PgDn", "IBEAM": "IBeam", "MACOS": "MacOS", "LTR": "LTR", "RTL": "RTL", "MENUITEM": "MenuItem"}
 var fkey = regexp.MustCompile(`^[A-Z]\d+$`)
 
 func camel(s string) string {
