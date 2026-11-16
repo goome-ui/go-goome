@@ -28,6 +28,7 @@ func layoutTypes() map[string]reflect.Type {
 		"goome_ui_item":   reflect.TypeOf(C.goome_ui_item{}),
 		"goome_combo":     reflect.TypeOf(Combo{}),
 		"goome_ui_config": reflect.TypeOf(UIConfig{}),
+		"goome_a11y_node": reflect.TypeOf(C.goome_a11y_node{}),
 	}
 }
 

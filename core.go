@@ -73,6 +73,10 @@ func (e Event) c() C.goome_event {
 	ev.mon, ev.button, ev.dy, ev.key, ev.mods, ev.id = C.int(e.Mon), C.int(e.Button), C.int(e.DY), C.int(e.Key), C.int(e.Mods), C.int(e.ID)
 	copyCStr(ev.text[:], e.Text)
 	copyCStr(ev.msg[:], e.Msg)
+	if (e.Type == EventText || e.Type == EventPreedit) && e.Msg == "" {
+		copyCStr(ev.text[:], "")
+		copyCStr(ev.msg[:], e.Text)
+	}
 	return ev
 }
 
@@ -241,6 +245,9 @@ func (g *Goome) Poll(timeoutMs int) (Event, bool, error) {
 		if p := C.goome_drop_path(g.g); p != nil {
 			e.Path = C.GoString(p)
 		}
+	}
+	if e.Type == EventText || e.Type == EventPreedit {
+		e.Text = C.GoString(C.goome_event_text(g.g))
 	}
 	return e, true, nil
 }
@@ -431,6 +438,30 @@ func (g *Goome) DropPath() string {
 		return ""
 	}
 	return C.GoString(p)
+}
+
+func (g *Goome) EventText() string {
+	return C.GoString(C.goome_event_text(g.h()))
+}
+
+func (g *Goome) PreeditCursor() int { return int(C.goome_preedit_cursor(g.h())) }
+
+func (g *Goome) TextInput(on bool, caret *Rect) error {
+	if caret == nil {
+		return g.check(C.goome_text_input(g.h(), b2i(on), nil))
+	}
+	r := (*C.goome_rect)(C.malloc(C.size_t(unsafe.Sizeof(C.goome_rect{}))))
+	defer C.free(unsafe.Pointer(r))
+	*r = caret.c()
+	return g.check(C.goome_text_input(g.h(), b2i(on), r))
+}
+
+func (g *Goome) PushIME(text string) error {
+	return g.Push(Event{Type: EventText, Msg: text})
+}
+
+func (g *Goome) PushPreedit(text string, cursor int) error {
+	return g.Push(Event{Type: EventPreedit, Msg: text, ID: cursor})
 }
 
 func (g *Goome) Push(ev Event) error {
