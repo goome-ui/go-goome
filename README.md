@@ -290,6 +290,81 @@ Without the helper, <code>goome.OpenApp("title", 960, 640)</code> gives you a no
 </details>
 
 <details>
+<summary align="center"><b>✨ Animations ✨</b></summary>
+
+<br>
+
+<p align="center">
+<code>ui.Anim(id, target, ms, ease)</code> gives you a number that moves toward <code>target</code> over <code>ms</code>. goome keeps the state per id, so just call it every frame with where you want it to end up. Change the target halfway and it turns around from where it is.<br>
+<code>ui.AnimColor</code> does the same for colors and <code>ui.Animating()</code> stays true while any of them move, so <code>App</code> keeps drawing until they're done.
+</p>
+
+```go
+x := ui.Anim("panel", target, 250, goome.EaseOut)
+col := ui.AnimColor("bg", 0xFF20D060, 200, goome.EaseLinear)
+c := ui.Canvas()
+c.RRect(x, 20, 120, 40, goome.Radius(8), col)
+
+goome.Ease(goome.EaseBounce, 0.25)
+```
+
+<p align="center">
+The eases are <code>EaseLinear</code>, <code>EaseIn</code>, <code>EaseOut</code>, <code>EaseInOut</code>, <code>EaseSmooth</code>, <code>EaseBack</code>, <code>EaseSpring</code> and <code>EaseBounce</code> (spring and back go a bit past the end and come back).<br>
+<code>EaseCustom</code> uses your own func from <code>ui.Config().SetEase(func(t float64) float64 { ... })</code>.
+</p>
+</details>
+
+<details>
+<summary align="center"><b>🌍 Emoji And RTL 🌍</b></summary>
+
+<br>
+
+<p align="center">
+Fonts do color emoji (COLR, CBDT and sbix), skin tones and ZWJ ones, plus Hebrew and Arabic with the right letter shapes. <code>goome.SystemFont</code> adds the systems emoji font by itself. For your own fonts, give them a fallback:
+</p>
+
+```go
+main, _ := goome.LoadFont("myfont.ttf")
+emoji, _ := goome.LoadFont("NotoColorEmoji.ttf")
+main.Fallback(emoji)
+c.FontText(main, 20, 10, 10, "hi 😀 שלום", 0xFFFFFFFF)
+
+goome.SetTextDir(goome.DirRTL)
+```
+
+<p align="center">
+The font holds on to its fallbacks, so freeing <code>emoji</code> first is fine, it only really goes away once <code>main</code> is freed too.<br>
+<code>SetTextDir</code> sets the direction for all text. <code>DirAuto</code> (the default) picks it from the first real letter of each line.
+</p>
+</details>
+
+<details>
+<summary align="center"><b>⌨️ IME And Screen Readers ⌨️</b></summary>
+
+<br>
+
+<p align="center">
+Inputs and text editors turn the IME on by themselves while they have focus and draw the text you're still composing under the caret. If you do your own text box, <code>g.TextInput(true, &goome.Rect{...})</code> turns it on and puts the candidate window by the caret. You get <code>EventPreedit</code> while someone is composing (<code>ev.Text</code> is the full text, <code>ev.ID</code> the caret) and <code>EventText</code> when its done.<br>
+In tests and engines push them yourself with <code>g.PushPreedit("かな", 3)</code> and <code>g.PushIME("かな")</code>.<br> <br>
+The ui builds an accessibility tree every frame, screen readers get it on each OS. Its on by default in a window, for offscreen turn it on with <code>ui.A11y(true)</code> and read it with <code>ui.A11yTree()</code>:
+</p>
+
+```go
+for _, n := range ui.A11yTree() {
+	fmt.Println(n.Role, n.Label, n.Value, n.Parent, n.Is(goome.A11yChecked))
+}
+ui.A11yRole(goome.RoleButton, "Knob")
+ui.A11yValue("11")
+ui.Custom("knob", 40, 40, 0)
+g.A11yAction("press", node, "")
+```
+
+<p align="center">
+<code>Parent</code> is the index of the parent node, -1 for the top. <code>A11yRole</code> and <code>A11yValue</code> describe the next <code>Custom</code> item, and <code>A11yAction</code> sends press, set, expand or focus like a screen reader would.
+</p>
+</details>
+
+<details>
 <summary align="center"><b>🎮 Engines And Offscreen 🎮</b></summary>
 
 <br>
@@ -351,6 +426,9 @@ Things that hold C memory (<code>Bitmap</code>, <code>Font</code>, <code>Canvas<
 - `examples/ui` - the ui kit demo with every widget, a theme editor and a stats window
 - `examples/app` - a small notes app in a normal window with menus, a split pane, a text editor and a modal
 - `examples/offscreen` - draws the ui with no window and saves it as a PNG
+- `examples/anim` - every ease racing next to each other, plus a color fade
+- `examples/text` - emoji, Hebrew and Arabic with a direction picker, `go run ./examples/text extra.ttf` adds a fallback font
+- `examples/a11y` - an offscreen ui that gets pressed and typed into through the accessibility tree and the IME, then prints the tree
 
 They're ports of the C examples. Way more small projects live in [goome-ui/examples](https://github.com/goome-ui/examples).
 

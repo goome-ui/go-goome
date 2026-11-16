@@ -56,5 +56,13 @@ jobs:
         run: |
           "$RUNNER_TEMP/bin/offscreen" "$RUNNER_TEMP/off.png" | tee "$RUNNER_TEMP/off.txt"
           grep -q "check 1 volume" "$RUNNER_TEMP/off.txt"
+      - name: anim on the test backend
+        run: GOOME_BACKEND=test GOOME_TEST_SCRIPT='screen 1x1 1; 3 resize 640x520; 5 click 30,62; 30 close; end 40' "$RUNNER_TEMP/bin/anim"
+      - name: text on the test backend
+        run: GOOME_BACKEND=test GOOME_TEST_SCRIPT='screen 1x1 1; 3 resize 640x420; 4 text hi; 5 preedit abc 1; 8 close; end 12' "$RUNNER_TEMP/bin/text"
+      - name: a11y offscreen
+        run: |
+          "$RUNNER_TEMP/bin/a11y" | tee "$RUNNER_TEMP/a11y.txt"
+          grep -q 'sound true name "こんにちは"' "$RUNNER_TEMP/a11y.txt"
       - name: grab on the test backend
         run: GOOME_BACKEND=test GOOME_TEST_SCRIPT='screen 320x200 1; end 5' "$RUNNER_TEMP/bin/grab" 0 10 10 40 30 "$RUNNER_TEMP/out.ppm" | grep "40x30 px"
