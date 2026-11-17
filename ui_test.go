@@ -304,3 +304,36 @@ func TestApp(t *testing.T) {
 		t.Errorf("closed %v frames %d", closed, a.Frames)
 	}
 }
+
+func TestGoThemePush(t *testing.T) {
+	g, err := Open(Options{Backend: BackendTest, TestScript: "screen 320x240 1; end 4"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer g.Close()
+	u, err := g.NewUI()
+	if err != nil {
+		t.Fatal(err)
+	}
+	u.Theme().SetFont(FontMain, nil)
+	u.Theme().FontSize = 14
+	for _, mk := range []func(*Theme){
+		func(th *Theme) { th.Light() },
+		func(th *Theme) { th.Dark() },
+		func(th *Theme) { th.Make(0xFF4FA3FF, true, 8) },
+	} {
+		th := new(Theme)
+		mk(th)
+		if th.Text>>24 == 0 {
+			t.Fatal("go theme has no text color")
+		}
+		th.SetFont(FontMain, nil)
+		th.FontSize = 14
+		if c := u.Begin(0); c == nil {
+			t.Fatal("no canvas")
+		}
+		u.PushTheme(th)
+		u.Label("themed")
+		u.End()
+	}
+}
