@@ -2,7 +2,7 @@
 
 <p align="center">
 Thanks for wanting to help! Small PRs that fix one thing are the easiest for me to check and merge, so keep them small and theyll get in way faster.<br>
-This repo is only the Go side. If the bug is in goome itself (drawing, a backend, the ui kit) it goes to <a href="https://github.com/goome-ui/c-goome">c-goome</a> instead, docs fixes go to <a href="https://github.com/goome-ui/docs">goome-ui/docs</a> (thats <a href="https://goome-ui.github.io/docs/">goome-ui.github.io/docs</a>) and new example projects to <a href="https://github.com/goome-ui/examples">goome-ui/examples</a>.
+This repo is only the Go side. If the bug is in goome itself (drawing, a backend, the ui kit) it goes to <a href="https://github.com/goome-ui/c-goome">c-goome</a> instead, docs fixes go to <a href="https://github.com/goome-ui/docs">goome-ui/docs</a> (thats <a href="https://goome.wtf/docs/">goome.wtf/docs</a>) and new example projects to <a href="https://github.com/goome-ui/examples">goome-ui/examples</a>.
 </p>
 
 <details>
@@ -91,7 +91,7 @@ CI runs on linux (plus Go 1.23), windows and both macs when you open the PR. It 
 • Every function in goome.h stays reachable. New enum values come from <code>go run ./tools/genconsts</code>, new struct fields go in the Go struct and <code>testdata/layout.c</code><br>
 • Errors come back as values (<code>*goome.Error</code>), dont panic for things that can just fail. Using something after <code>Free</code> or <code>Close</code> is the only panic<br>
 • Anything that holds C memory gets a <code>Free()</code> and freeing twice is fine<br>
-• Anything with a begin and an end in C gets closed by <code>ui.End()</code>, and calls the C end exactly when <a href="https://goome-ui.github.io/docs/ui-app/">the docs</a> say C wants it<br>
+• Anything with a begin and an end in C gets closed by <code>ui.End()</code>, and calls the C end exactly when <a href="https://goome.wtf/docs/ui-app/">the docs</a> say C wants it<br>
 • Match the code around it. Short names are fine inside functions<br>
 • No comments unless something really isnt obvious<br>
 • Dont reformat whole files, it makes the diff impossible to read
