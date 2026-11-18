@@ -9,10 +9,10 @@
 </p>
 
 <p align="center">
-  <img src="https://goome-ui.github.io/docs/assets/badges/go-123.svg" alt="Go 1.23+">
-  <a href="https://pkg.go.dev/github.com/goome-ui/go-goome"><img src="https://goome-ui.github.io/docs/assets/badges/go-get.svg" alt="go get"></a>
-  <img src="https://goome-ui.github.io/docs/assets/badges/cgo-one-file.svg" alt="cgo, one file">
-  <img src="https://goome-ui.github.io/docs/assets/badges/dependencies-none.svg" alt="no dependencies">
+  <img src="https://goome.wtf/badges/go-123.svg" alt="Go 1.23+">
+  <a href="https://pkg.go.dev/github.com/goome-ui/go-goome"><img src="https://goome.wtf/badges/go-get.svg" alt="go get"></a>
+  <img src="https://goome.wtf/badges/cgo-one-file.svg" alt="cgo, one file">
+  <img src="https://goome.wtf/badges/dependencies-none.svg" alt="no dependencies">
   <img src="https://img.shields.io/badge/Linux-X11%20%2B%20Wayland-1b1d22?style=flat-square&logo=linux&logoColor=white" alt="Linux">
   <img src="https://img.shields.io/badge/Windows-10%20%2F%2011-1b1d22?style=flat-square&logo=windows11&logoColor=white" alt="Windows">
   <img src="https://img.shields.io/badge/macOS-14%2B-1b1d22?style=flat-square&logo=apple&logoColor=white" alt="macOS">
@@ -20,8 +20,8 @@
 </p>
 
 <p align="center">
-  <a href="https://goome-ui.github.io/docs/">Docs</a> &nbsp;·&nbsp;
-  <a href="https://goome-ui.github.io/docs/builder/">Builder</a> &nbsp;·&nbsp;
+  <a href="https://goome.wtf/docs/">Docs</a> &nbsp;·&nbsp;
+  <a href="https://goome.wtf/builder/">Builder</a> &nbsp;·&nbsp;
   <a href="https://github.com/goome-ui/examples">Examples</a> &nbsp;·&nbsp;
   <a href="https://github.com/goome-ui/c-goome">C</a> &nbsp;·&nbsp;
   <a href="https://github.com/goome-ui/csharp-goome">C#</a> &nbsp;·&nbsp;
@@ -35,7 +35,7 @@
 <p align="center">
   This is <a href="https://github.com/goome-ui/c-goome">goome</a> for Go. Draw over the whole screen and clicks only stop where you drew something.<br>
   It does app windows and offscreen frames for game engines too. It's cgo on top of the one file C library, so <code>go get</code> is all you do, theres no library to install.<br>
-  The <a href="https://goome-ui.github.io/docs/builder/">builder</a> lets you drag a ui together in your browser.<br> <br>
+  The <a href="https://goome.wtf/builder/">builder</a> lets you drag a ui together in your browser.<br> <br>
   Questions go in <a href="https://github.com/goome-ui/c-goome/discussions">Discussions</a>.<br>
   Do you like this project? If so, please let me know!
   <a href="https://sevvy-wevvy.com/discord">Discord</a>
@@ -396,7 +396,7 @@ g.A11yAction("press", node, "")
 <br>
 
 <p align="center">
-Everything from <a href="https://github.com/goome-ui/c-goome/blob/main/include/goome.h">goome.h</a> is in here, just in Go style. <a href="https://goome-ui.github.io/docs/">The docs</a> explain every part of it. The names are the C ones in CamelCase without <code>goome_</code>: <code>goome_draw_rrect</code> is <code>c.RRect</code>, <code>GOOME_WIN_MOVE</code> is <code>goome.WinMove</code>, <code>GOOME_K_LEFT</code> is <code>goome.KeyLeft</code>, <code>GOOME_S_ACCENT</code> is <code>goome.StyleAccent</code>, event types are <code>goome.EventDown</code> and so on.<br> <br>
+Everything from <a href="https://github.com/goome-ui/c-goome/blob/main/include/goome.h">goome.h</a> is in here, just in Go style. <a href="https://goome.wtf/docs/">The docs</a> explain every part of it. The names are the C ones in CamelCase without <code>goome_</code>: <code>goome_draw_rrect</code> is <code>c.RRect</code>, <code>GOOME_WIN_MOVE</code> is <code>goome.WinMove</code>, <code>GOOME_K_LEFT</code> is <code>goome.KeyLeft</code>, <code>GOOME_S_ACCENT</code> is <code>goome.StyleAccent</code>, event types are <code>goome.EventDown</code> and so on.<br> <br>
 Errors come back as values. They're a <code>*goome.Error</code> with the C code on <code>.Code</code>, and <code>errors.Is(err, goome.ErrAgain)</code> works for <code>ErrNotSupported</code>, <code>ErrDenied</code>, <code>ErrNoDisplay</code>, <code>ErrGone</code>, <code>ErrAgain</code>, <code>ErrNoMem</code> and <code>ErrArg</code>.<br>
 Drawing on a canvas thats already been sent, or a bitmap or font you freed, panics. Thats a bug in the program, like using a closed channel.
 </p>
