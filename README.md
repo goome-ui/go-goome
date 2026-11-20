@@ -113,7 +113,7 @@ go get github.com/goome-ui/go-goome@latest
 ```
 
 <p align="center">
-Thats the newest release, <code>@v0.5.3</code> pins one and <code>@dev</code> gets the newest code. Go 1.23 or newer, with cgo on. The first build compiles goome with your C compiler, that takes a bit, after that Go caches it.<br> <br>
+Thats the newest release, <code>@v0.5.5</code> pins one and <code>@dev</code> gets the newest code. Go 1.23 or newer, with cgo on. The first build compiles goome with your C compiler, that takes a bit, after that Go caches it.<br> <br>
 On Debian/Ubuntu thats <code>sudo apt install build-essential</code>, on Mac <code>xcode-select --install</code>, on Windows <a href="https://www.mingw-w64.org/">mingw-w64</a> gcc on your PATH. If cgo is off (<code>CGO_ENABLED=0</code>, or no compiler on Windows) turn it on with <code>CGO_ENABLED=1</code>.<br> <br>
 goome loads everything it needs at runtime, so theres no <code>-l</code> flags, no pkg-config and nothing to ship next to your exe.
 </p>
