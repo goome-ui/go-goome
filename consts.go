@@ -25,6 +25,7 @@ const (
 	WindowHidden         = C.GOOME_WINDOW_HIDDEN
 	WindowCenter         = C.GOOME_WINDOW_CENTER
 	WindowNoTitlebar     = C.GOOME_WINDOW_NO_TITLEBAR
+	WindowNoConsole      = C.GOOME_WINDOW_NO_CONSOLE
 	OK                   = C.GOOME_OK
 	CodeNotSupported     = C.GOOME_ENOTSUP
 	CodeDenied           = C.GOOME_EDENIED
@@ -338,6 +339,7 @@ var cConsts = map[string]int{
 	"GOOME_WINDOW_HIDDEN":            WindowHidden,
 	"GOOME_WINDOW_CENTER":            WindowCenter,
 	"GOOME_WINDOW_NO_TITLEBAR":       WindowNoTitlebar,
+	"GOOME_WINDOW_NO_CONSOLE":        WindowNoConsole,
 	"GOOME_OK":                       OK,
 	"GOOME_ENOTSUP":                  CodeNotSupported,
 	"GOOME_EDENIED":                  CodeDenied,
