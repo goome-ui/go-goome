@@ -1,3 +1,4 @@
+// Package goome is the Go binding for the goome C library: overlays on top of everything, normal desktop windows or ui inside your own game. Open a session with Open, OpenApp or OpenOffscreen, then draw with Canvas or the UI kit.
 package goome
 
 /*
@@ -12,26 +13,48 @@ import (
 	"unsafe"
 )
 
+// Options are the settings for Open. Leave a field zero for its default.
 type Options struct {
-	Title       string
-	Backend     int
-	StateDir    string
-	NoCapture   bool
-	CaptureFPS  int
-	HideSelf    bool
-	TestFrames  string
-	TestScript  string
-	TestShots   string
-	Mode        int
-	Width       int
-	Height      int
-	MinWidth    int
-	MinHeight   int
+	// Title is the window title, empty means "goome".
+	Title string
+	// Backend forces a backend, BackendAuto picks one. The GOOME_BACKEND env var wins over it.
+	Backend int
+	// StateDir is the folder for the portal token and the control fifo. Empty means neither.
+	StateDir string
+	// NoCapture means an overlay never asks for screen access.
+	NoCapture bool
+	// CaptureFPS is the frame rate of the GNOME and portal capture streams, 0 means 5.
+	CaptureFPS int
+	// HideSelf keeps our overlay out of grabs where the OS lets us.
+	HideSelf bool
+	// TestFrames is for the test backend only, it can also come from the GOOME_TEST_FRAMES env var.
+	TestFrames string
+	// TestScript is for the test backend only, it can also come from the GOOME_TEST_SCRIPT env var.
+	TestScript string
+	// TestShots is for the test backend only, it can also come from the GOOME_TEST_SHOTS env var.
+	TestShots string
+	// Mode is one of ModeOverlay, ModeWindow or ModeOffscreen.
+	Mode int
+	// Width is the logical window or offscreen width, 0 means 960.
+	Width int
+	// Height is the logical window or offscreen height, 0 means 640.
+	Height int
+	// MinWidth is the smallest window width, 0 means no limit. Window mode only.
+	MinWidth int
+	// MinHeight is the smallest window height, 0 means no limit. Window mode only.
+	MinHeight int
+	// WindowFlags are the Window* bits ored together, like WindowResizable. Window mode only.
 	WindowFlags int
-	Scale       float64
+	// Scale is real pixels per logical pixel, 0 means 1. Offscreen only.
+	Scale float64
 }
 
+// Rect is a rectangle.
 type Rect struct {
+	// W is the width.
+	// H is the height.
+	// X is the left edge.
+	// Y is the top edge.
 	X, Y, W, H int
 }
 
@@ -43,27 +66,48 @@ func rectFrom(r C.goome_rect) Rect {
 	return Rect{int(r.x), int(r.y), int(r.w), int(r.h)}
 }
 
+// Monitor describes one screen.
 type Monitor struct {
-	ID       int
-	Name     string
-	Area     Rect
-	Scale    float64
-	PW, PH   int
+	// ID is the monitor number you pass to Begin and Capture.
+	ID int
+	// Name is the name the system gives the monitor.
+	Name string
+	// Area is the monitor rect in logical desktop coordinates.
+	Area Rect
+	// Scale is real pixels per logical pixel.
+	Scale float64
+	// PH is the height in real pixels.
+	// PW is the width in real pixels.
+	PW, PH int
+	// Rotation is 0, 90, 180 or 270, plus 360 if mirrored. Grabs and canvases already undo it.
 	Rotation int
 }
 
+// Event is one thing that happened, like a click, key press, hotkey, drop or window event.
 type Event struct {
-	Type   int
-	X, Y   float64
-	Mon    int
+	// Type is which kind of event this is, one of the Event* constants.
+	Type int
+	// X is the logical x position of the pointer.
+	// Y is the logical y position of the pointer.
+	X, Y float64
+	// Mon is the monitor the event belongs to.
+	Mon int
+	// Button is the mouse button, 1 left, 2 middle, 3 right.
 	Button int
-	DY     int
-	Key    int
-	Mods   int
-	Text   string
-	ID     int
-	Msg    string
-	Path   string
+	// DY is the scroll amount in notches, +1 is down.
+	DY int
+	// Key is the lowercase ascii key or one of the Key* constants.
+	Key int
+	// Mods holds the modifier bits (Shift, Ctrl, Alt, Super) that were down.
+	Mods int
+	// Text is the utf-8 the key typed, can be empty.
+	Text string
+	// ID depends on the type: the hotkey id, 1 or 0 for focus gained or lost, or the caret byte offset for a preedit.
+	ID int
+	// Msg is the text of a control line, or the text of an IME event, cut at 63 bytes.
+	Msg string
+	// Path is the full path of a dropped file, only set on EventDrop.
+	Path string
 }
 
 func (e Event) c() C.goome_event {
@@ -102,6 +146,7 @@ func goStr(src []C.char) string {
 	return string(b)
 }
 
+// Goome is an open goome session, a window, overlay or offscreen surface plus its event queue.
 type Goome struct {
 	g      *C.goome
 	strs   []*C.char
@@ -124,6 +169,7 @@ func b2i(b bool) C.int {
 	return 0
 }
 
+// Open starts a session with the given options. The error says why it failed, like no display.
 func Open(o Options) (*Goome, error) {
 	gm := &Goome{shots: map[int]int{}}
 	keep := func(s string) *C.char {
@@ -161,10 +207,12 @@ func Open(o Options) (*Goome, error) {
 	return gm, nil
 }
 
+// OpenApp opens a normal resizable window, centered, with logical size w by h.
 func OpenApp(title string, w, h int) (*Goome, error) {
 	return Open(Options{Title: title, Mode: ModeWindow, Width: w, Height: h, WindowFlags: WindowResizable | WindowCenter})
 }
 
+// OpenOffscreen opens a session with no window, logical size w by h at the given scale (0 is 1).
 func OpenOffscreen(w, h int, scale float64) (*Goome, error) {
 	return Open(Options{Mode: ModeOffscreen, Width: w, Height: h, Scale: scale})
 }
@@ -176,6 +224,7 @@ func (g *Goome) freeStrs() {
 	g.strs = nil
 }
 
+// Close frees the UIs and the session. It is safe to call twice.
 func (g *Goome) Close() {
 	if g == nil || g.g == nil {
 		return
@@ -192,6 +241,7 @@ func (g *Goome) Close() {
 
 var errClosed = &Error{Code: CodeGone, Msg: "this goome is closed"}
 
+// Closed reports whether the session is already closed.
 func (g *Goome) Closed() bool { return g == nil || g.g == nil }
 
 func (g *Goome) h() *C.goome {
@@ -201,6 +251,7 @@ func (g *Goome) h() *C.goome {
 	return g.g
 }
 
+// LastError returns the message of the last failure, or an empty string if closed.
 func (g *Goome) LastError() string {
 	if g.Closed() {
 		return ""
@@ -208,12 +259,18 @@ func (g *Goome) LastError() string {
 	return C.GoString(C.goome_error(g.g))
 }
 
+// BackendName returns the name of the backend that got picked.
 func (g *Goome) BackendName() string { return C.GoString(C.goome_backend_name(g.h())) }
-func (g *Goome) Caps() int           { return int(C.goome_caps(g.h())) }
+
+// Caps returns the capability bits the backend supports, the Cap* constants ored together.
+func (g *Goome) Caps() int { return int(C.goome_caps(g.h())) }
+
+// Can reports whether the backend has every capability bit in capability.
 func (g *Goome) Can(capability int) bool {
 	return g.Caps()&capability == capability
 }
 
+// Monitors lists the monitors, up to 32.
 func (g *Goome) Monitors() []Monitor {
 	var mons [32]C.goome_monitor
 	n := int(C.goome_monitors(g.h(), &mons[0], 32))
@@ -225,6 +282,7 @@ func (g *Goome) Monitors() []Monitor {
 	return out
 }
 
+// Poll waits up to timeoutMs for an event. The bool is false when none came.
 func (g *Goome) Poll(timeoutMs int) (Event, bool, error) {
 	if g.Closed() {
 		return Event{}, false, errClosed
@@ -252,6 +310,7 @@ func (g *Goome) Poll(timeoutMs int) (Event, bool, error) {
 	return e, true, nil
 }
 
+// Events returns an iterator over incoming events. It waits up to timeoutMs for the first one, then drains the queue and stops.
 func (g *Goome) Events(timeoutMs int) iter.Seq[Event] {
 	return func(yield func(Event) bool) {
 		wait := timeoutMs
@@ -268,6 +327,7 @@ func (g *Goome) Events(timeoutMs int) iter.Seq[Event] {
 	}
 }
 
+// Pointer returns the global pointer position in logical coordinates and the pressed button bits.
 func (g *Goome) Pointer() (x, y float64, buttons int, err error) {
 	if g.Closed() {
 		return 0, 0, 0, errClosed
@@ -280,15 +340,21 @@ func (g *Goome) Pointer() (x, y float64, buttons int, err error) {
 	return float64(cx), float64(cy), int(b), nil
 }
 
+// Keyboard asks the system to send keys to us (on) or stops (off).
 func (g *Goome) Keyboard(on bool) error {
 	if g.Closed() {
 		return errClosed
 	}
 	return g.check(C.goome_keyboard(g.h(), b2i(on)))
 }
-func (g *Goome) Grab(on bool) error { return g.check(C.goome_grab(g.h(), b2i(on))) }
-func (g *Goome) Grabbed() bool      { return C.goome_grabbed(g.h()) > 0 }
 
+// Grab turns input grabbing on or off. In an overlay it takes focus and the pointer, in a window it keeps drags going outside it.
+func (g *Goome) Grab(on bool) error { return g.check(C.goome_grab(g.h(), b2i(on))) }
+
+// Grabbed reports whether a grab is on.
+func (g *Goome) Grabbed() bool { return C.goome_grabbed(g.h()) > 0 }
+
+// Hotkey registers a global hotkey like "ctrl+alt+k" that comes back as an EventHotkey carrying id.
 func (g *Goome) Hotkey(combo string, id int) error {
 	if g.Closed() {
 		return errClosed
@@ -298,6 +364,7 @@ func (g *Goome) Hotkey(combo string, id int) error {
 	return g.check(C.goome_hotkey(g.h(), s, C.int(id)))
 }
 
+// ParseCombo turns a combo like "ctrl+shift+k" into a key and modifier bits.
 func ParseCombo(combo string) (key, mods int, err error) {
 	s := C.CString(combo)
 	defer C.free(unsafe.Pointer(s))
@@ -308,6 +375,7 @@ func ParseCombo(combo string) (key, mods int, err error) {
 	return int(k), int(m), nil
 }
 
+// ControlPath returns the path of the control fifo in the state dir, or an empty string if there is none.
 func (g *Goome) ControlPath() string {
 	p := C.goome_control_path(g.h())
 	if p == nil {
@@ -316,6 +384,7 @@ func (g *Goome) ControlPath() string {
 	return C.GoString(p)
 }
 
+// Send writes a control line to the control fifo in stateDir, which reaches the running program as an EventControl.
 func Send(stateDir, msg string) error {
 	d, m := C.CString(stateDir), C.CString(msg)
 	defer C.free(unsafe.Pointer(d))
@@ -326,18 +395,23 @@ func Send(stateDir, msg string) error {
 	return nil
 }
 
+// Pacer keeps a loop at a steady frame rate.
 type Pacer struct {
-	p   *C.goome_pacer
+	p *C.goome_pacer
+	// FPS is the target frames per second, you can change it between calls.
 	FPS int
 }
 
+// NewPacer makes a Pacer for a frame loop that runs at fps frames per second. Free it when done.
 func NewPacer(fps int) *Pacer {
 	p := &Pacer{p: (*C.goome_pacer)(C.calloc(1, C.size_t(unsafe.Sizeof(C.goome_pacer{})))), FPS: fps}
 	return p
 }
 
+// Wait returns how many milliseconds are left until the next frame is due, pass that to Poll.
 func (p *Pacer) Wait() int { return int(C.goome_pace(p.p, C.int(p.FPS))) }
 
+// Free releases the pacer.
 func (p *Pacer) Free() {
 	if p.p != nil {
 		C.free(unsafe.Pointer(p.p))
@@ -345,10 +419,13 @@ func (p *Pacer) Free() {
 	}
 }
 
+// NowMs returns the current time in milliseconds.
 func NowMs() int64 { return int64(C.goome_now_ms()) }
 
+// Mode returns the mode this session runs in, one of the Mode* constants.
 func (g *Goome) Mode() int { return int(C.goome_mode(g.h())) }
 
+// SetTitle changes the window title.
 func (g *Goome) SetTitle(title string) error {
 	if g.Closed() {
 		return errClosed
@@ -358,6 +435,7 @@ func (g *Goome) SetTitle(title string) error {
 	return g.check(C.goome_window_title(g.h(), s))
 }
 
+// SetSize sets the logical client size of the window.
 func (g *Goome) SetSize(w, h int) error {
 	if g.Closed() {
 		return errClosed
@@ -365,6 +443,7 @@ func (g *Goome) SetSize(w, h int) error {
 	return g.check(C.goome_window_size(g.h(), C.int(w), C.int(h)))
 }
 
+// Pos returns the window position. It gives ErrNotSupported where the OS won't say, like Wayland.
 func (g *Goome) Pos() (x, y int, err error) {
 	if g.Closed() {
 		return 0, 0, errClosed
@@ -376,6 +455,7 @@ func (g *Goome) Pos() (x, y int, err error) {
 	return int(cx), int(cy), nil
 }
 
+// SetPos moves the window to x, y.
 func (g *Goome) SetPos(x, y int) error {
 	if g.Closed() {
 		return errClosed
@@ -384,23 +464,35 @@ func (g *Goome) SetPos(x, y int) error {
 	return g.check(C.goome_window_pos(g.h(), &cx, &cy, 1))
 }
 
+// SetState changes the window state, one of the State* constants.
 func (g *Goome) SetState(state int) error {
 	if g.Closed() {
 		return errClosed
 	}
 	return g.check(C.goome_window_state(g.h(), C.int(state)))
 }
-func (g *Goome) State() int           { return int(C.goome_window_get_state(g.h())) }
+
+// State returns the current window state, one of the State* constants.
+func (g *Goome) State() int { return int(C.goome_window_get_state(g.h())) }
+
+// Drag starts a native window move (edges 0) or resize (Edge* bits) from the press happening right now.
 func (g *Goome) Drag(edges int) error { return g.check(C.goome_window_drag(g.h(), C.int(edges))) }
-func (g *Goome) Show(on bool) error   { return g.check(C.goome_window_show(g.h(), b2i(on))) }
+
+// Show shows or hides the window.
+func (g *Goome) Show(on bool) error { return g.check(C.goome_window_show(g.h(), b2i(on))) }
+
+// SetCursor changes the mouse cursor to one of the Cursor* shapes.
 func (g *Goome) SetCursor(shape int) error {
 	if g.Closed() {
 		return errClosed
 	}
 	return g.check(C.goome_cursor(g.h(), C.int(shape)))
 }
+
+// Cursor returns the last cursor shape that was asked for, handy for offscreen embedders.
 func (g *Goome) Cursor() int { return int(C.goome_cursor_shape(g.h())) }
 
+// SetClipboard puts text on the clipboard.
 func (g *Goome) SetClipboard(text string) error {
 	if g.Closed() {
 		return errClosed
@@ -410,6 +502,7 @@ func (g *Goome) SetClipboard(text string) error {
 	return g.check(C.goome_clipboard_set(g.h(), s))
 }
 
+// Clipboard returns the clipboard as text. It can block for around 250ms on X11 and Wayland.
 func (g *Goome) Clipboard() (string, error) {
 	if g.Closed() {
 		return "", errClosed
@@ -432,6 +525,7 @@ func (g *Goome) Clipboard() (string, error) {
 	}
 }
 
+// DropPath returns the full path of the last EventDrop, good until the next poll.
 func (g *Goome) DropPath() string {
 	p := C.goome_drop_path(g.h())
 	if p == nil {
@@ -440,12 +534,15 @@ func (g *Goome) DropPath() string {
 	return C.GoString(p)
 }
 
+// EventText returns the full utf-8 of the last EventText or EventPreedit, good until the next poll.
 func (g *Goome) EventText() string {
 	return C.GoString(C.goome_event_text(g.h()))
 }
 
+// PreeditCursor returns the byte offset of the caret in the last preedit text.
 func (g *Goome) PreeditCursor() int { return int(C.goome_preedit_cursor(g.h())) }
 
+// TextInput turns IME input on or off. caret is where the candidate window goes, in logical coordinates, and can be nil.
 func (g *Goome) TextInput(on bool, caret *Rect) error {
 	if caret == nil {
 		return g.check(C.goome_text_input(g.h(), b2i(on), nil))
@@ -456,14 +553,17 @@ func (g *Goome) TextInput(on bool, caret *Rect) error {
 	return g.check(C.goome_text_input(g.h(), b2i(on), r))
 }
 
+// PushIME queues a finished IME text, like a composed or dead key result.
 func (g *Goome) PushIME(text string) error {
 	return g.Push(Event{Type: EventText, Msg: text})
 }
 
+// PushPreedit queues a preedit change with text and the caret byte offset in it. Empty text ends the composing.
 func (g *Goome) PushPreedit(text string, cursor int) error {
 	return g.Push(Event{Type: EventPreedit, Msg: text, ID: cursor})
 }
 
+// Push queues an event as if it came from the system, in any mode.
 func (g *Goome) Push(ev Event) error {
 	if g.Closed() {
 		return errClosed
@@ -474,6 +574,7 @@ func (g *Goome) Push(ev Event) error {
 	return g.check(C.goome_push(g.h(), e))
 }
 
+// PushClick queues a left click at x, y: a move, a press and a release.
 func (g *Goome) PushClick(x, y float64) error {
 	if g.Closed() {
 		return errClosed
@@ -487,6 +588,7 @@ func (g *Goome) PushClick(x, y float64) error {
 	return g.Push(Event{Type: EventUp, X: x, Y: y, Button: 1})
 }
 
+// PushText queues each character of text as a key event.
 func (g *Goome) PushText(text string) error {
 	if g.Closed() {
 		return errClosed
@@ -509,6 +611,7 @@ func keyFor(r rune) int {
 	return 0
 }
 
+// Resize changes the size (logical) and scale of an offscreen session. Offscreen only.
 func (g *Goome) Resize(w, h int, scale float64) error {
 	if g.Closed() {
 		return errClosed
@@ -516,8 +619,10 @@ func (g *Goome) Resize(w, h int, scale float64) error {
 	return g.check(C.goome_resize(g.h(), C.int(w), C.int(h), C.double(scale)))
 }
 
+// Hit reports whether x, y lands in the hit rects of the last End.
 func (g *Goome) Hit(x, y float64) bool { return C.goome_hit(g.h(), C.double(x), C.double(y)) > 0 }
 
+// LastFrame returns the last frame End sent, as premultiplied argb, good until the next Begin.
 func (g *Goome) LastFrame() (*Image, error) {
 	if g.Closed() {
 		return nil, errClosed
@@ -529,6 +634,7 @@ func (g *Goome) LastFrame() (*Image, error) {
 	return img, nil
 }
 
+// FrameDirty returns the real pixel rect that changed since the last call, and false if nothing did. The first call after open or resize is the whole frame.
 func (g *Goome) FrameDirty() (Rect, bool) {
 	var r C.goome_rect
 	if C.goome_frame_dirty(g.h(), &r) <= 0 {
@@ -537,6 +643,7 @@ func (g *Goome) FrameDirty() (Rect, bool) {
 	return rectFrom(r), true
 }
 
+// FrameCopy copies the rect r of the last frame, or all of it if r is nil, into dst in the given pixel format. The stride is in bytes.
 func (g *Goome) FrameCopy(dst []byte, strideBytes int, format int, r *Rect) error {
 	if g.Closed() {
 		return errClosed
@@ -564,6 +671,7 @@ func (g *Goome) FrameCopy(dst []byte, strideBytes int, format int, r *Rect) erro
 	return g.check(C.goome_frame_copy(g.h(), unsafe.Pointer(&dst[0]), C.int(strideBytes), C.int(format), cr))
 }
 
+// Image is a grabbed screen image of 0xFFRRGGBB pixels that goome owns.
 type Image struct {
 	img C.goome_image
 	g   *Goome
@@ -571,6 +679,7 @@ type Image struct {
 	gen int
 }
 
+// Capture grabs monitor mon, or just the rect r if it isn't nil. The pixels are good until the next grab of that monitor.
 func (g *Goome) Capture(mon int, r *Rect) (*Image, error) {
 	if g.Closed() {
 		return nil, errClosed
@@ -590,6 +699,7 @@ func (g *Goome) Capture(mon int, r *Rect) (*Image, error) {
 	return &Image{img: *img, g: g, mon: mon, gen: g.shots[mon]}, nil
 }
 
+// CaptureWait is Capture that keeps polling and retrying while the backend says try again, for up to about five seconds.
 func (g *Goome) CaptureWait(mon int, r *Rect) (*Image, error) {
 	var err error
 	for try := 0; try < 50; try++ {
@@ -602,6 +712,7 @@ func (g *Goome) CaptureWait(mon int, r *Rect) (*Image, error) {
 	return nil, err
 }
 
+// Fresh reports whether the pixels are still valid, they stop being once a newer grab of that monitor replaces them.
 func (i *Image) Fresh() bool {
 	if i.g.Closed() {
 		return false
@@ -612,15 +723,31 @@ func (i *Image) Fresh() bool {
 	return i.g.shots[i.mon] == i.gen
 }
 
-func (i *Image) W() int           { return int(i.img.w) }
-func (i *Image) H() int           { return int(i.img.h) }
-func (i *Image) Stride() int      { return int(i.img.stride) }
-func (i *Image) Area() Rect       { return rectFrom(i.img.area) }
-func (i *Image) Mon() int         { return int(i.img.mon) }
-func (i *Image) HasSelf() bool    { return i.img.has_self != 0 }
-func (i *Image) HasCursor() bool  { return i.img.has_cursor != 0 }
+// W is the width in real pixels.
+func (i *Image) W() int { return int(i.img.w) }
+
+// H is the height in real pixels.
+func (i *Image) H() int { return int(i.img.h) }
+
+// Stride is the row length in pixels, which can be more than W.
+func (i *Image) Stride() int { return int(i.img.stride) }
+
+// Area is the logical desktop rect the image covers.
+func (i *Image) Area() Rect { return rectFrom(i.img.area) }
+
+// Mon is the monitor the image came from.
+func (i *Image) Mon() int { return int(i.img.mon) }
+
+// HasSelf reports whether our own overlay is in the image, mask it with AlphaAt.
+func (i *Image) HasSelf() bool { return i.img.has_self != 0 }
+
+// HasCursor reports whether the mouse cursor got baked into the image.
+func (i *Image) HasCursor() bool { return i.img.has_cursor != 0 }
+
+// CursorRect is where the cursor was baked in, in logical coordinates.
 func (i *Image) CursorRect() Rect { return rectFrom(i.img.cursor) }
 
+// Pixels returns the pixels without copying them, row by row with Stride, or nil if the image isn't fresh.
 func (i *Image) Pixels() []uint32 {
 	if !i.Fresh() || i.img.px == nil {
 		return nil
@@ -628,6 +755,7 @@ func (i *Image) Pixels() []uint32 {
 	return unsafe.Slice((*uint32)(unsafe.Pointer(i.img.px)), int(i.img.h)*int(i.img.stride))
 }
 
+// Pixel returns the pixel at x, y, or 0 if it is out of range or the image is stale.
 func (i *Image) Pixel(x, y int) uint32 {
 	px := i.Pixels()
 	if px == nil || x < 0 || y < 0 || x >= i.W() || y >= i.H() {
@@ -636,6 +764,7 @@ func (i *Image) Pixel(x, y int) uint32 {
 	return px[y*i.Stride()+x]
 }
 
+// Copy returns the pixels as a new w*h slice you own, without the stride padding, or nil if the image isn't fresh.
 func (i *Image) Copy() []uint32 {
 	px := i.Pixels()
 	if px == nil {
@@ -649,6 +778,7 @@ func (i *Image) Copy() []uint32 {
 	return out
 }
 
+// SavePPM writes the image to path as a PPM file.
 func (i *Image) SavePPM(path string) error {
 	if !i.Fresh() {
 		return newErr(CodeGone, "this image got replaced by a newer grab")
@@ -661,6 +791,7 @@ func (i *Image) SavePPM(path string) error {
 	return nil
 }
 
+// SavePPM writes w by h pixels of px (stride in pixels) to path as a PPM file.
 func SavePPM(path string, px []uint32, w, h, stride int) error {
 	if w <= 0 || h <= 0 || stride < w || len(px) < (h-1)*stride+w {
 		return newErr(CodeArg, "px is too small for %dx%d with stride %d", w, h, stride)
@@ -676,10 +807,12 @@ func SavePPM(path string, px []uint32, w, h, stride int) error {
 	return nil
 }
 
+// AlphaAt returns the alpha of our own overlay at x, y, so you can mask it out of a grab that has HasSelf set.
 func (g *Goome) AlphaAt(x, y float64) int {
 	return int(C.goome_alpha_at(g.h(), C.double(x), C.double(y)))
 }
 
+// Begin starts a frame on monitor mon and returns the canvas to draw on, or nil if there is nothing to draw on. Finish it with End.
 func (g *Goome) Begin(mon int) *Canvas {
 	c := C.goome_begin(g.h(), C.int(mon))
 	g.frames++
@@ -689,6 +822,7 @@ func (g *Goome) Begin(mon int) *Canvas {
 	return &Canvas{c: c, g: g, gen: g.frames}
 }
 
+// End sends the frame from Begin, with the hit rects of the canvas plus any extra hits you pass.
 func (g *Goome) End(c *Canvas, hits ...Rect) error {
 	if g.Closed() {
 		return errClosed
@@ -712,6 +846,7 @@ func (g *Goome) End(c *Canvas, hits ...Rect) error {
 	return g.check(C.goome_end(g.h(), cc, buf, C.int(len(all))))
 }
 
+// Frame runs draw on a fresh canvas for monitor mon and sends it, a Begin and End in one call.
 func (g *Goome) Frame(mon int, draw func(c *Canvas)) error {
 	c := g.Begin(mon)
 	if c == nil {
