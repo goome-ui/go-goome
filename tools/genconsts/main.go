@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"go/format"
 	"os"
@@ -78,6 +79,16 @@ func main() {
 			}
 		}
 	}
+	rawDocs, err := os.ReadFile("tools/consts-docs.json")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	docs := map[string]string{}
+	if err := json.Unmarshal(rawDocs, &docs); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
 	var out bytes.Buffer
 	out.WriteString("package goome\n\n/*\n#include \"native/goome.h\"\n*/\nimport \"C\"\n\nconst (\n")
 	used := map[string]string{}
@@ -88,6 +99,9 @@ func main() {
 			os.Exit(1)
 		}
 		used[g] = n
+		if d := docs[g]; d != "" {
+			fmt.Fprintf(&out, "\t// %s\n", d)
+		}
 		fmt.Fprintf(&out, "\t%s = C.%s\n", g, n)
 	}
 	out.WriteString(")\n\nvar cConsts = map[string]int{\n")
