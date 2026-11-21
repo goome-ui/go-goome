@@ -33,4 +33,5 @@ const char *ggo_version(void)
 */
 import "C"
 
+// Version is the version of the goome C library this binding was built against.
 var Version = C.GoString(C.ggo_version())
