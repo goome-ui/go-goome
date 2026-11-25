@@ -264,8 +264,17 @@ func TestOffscreen(t *testing.T) {
 	if err := g.Push(Event{Type: EventMotion, X: 5, Y: 5}); err != nil {
 		t.Fatal(err)
 	}
+	if err := g.FrameCopy(buf, 50*4, FmtRGBA, &Rect{1<<31 - 1, 0, 1, 1}); !errors.Is(err, ErrArg) {
+		t.Errorf("rect off the frame: %v", err)
+	}
+	if err := SavePPM(filepath.Join(t.TempDir(), "x.ppm"), make([]uint32, 10), 1, 4, 0x5555555555555556); !errors.Is(err, ErrArg) {
+		t.Errorf("stride that wraps: %v", err)
+	}
 	if err := g.Resize(300, 200, 2); err != nil {
 		t.Fatal(err)
+	}
+	if f.Fresh() || f.Pixels() != nil {
+		t.Error("frame from before the resize still hands out pixels")
 	}
 	g.SetClipboard("hi")
 	if s, err := g.Clipboard(); err != nil || s != "hi" {

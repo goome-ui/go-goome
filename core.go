@@ -149,11 +149,12 @@ func goStr(src []C.char) string {
 
 // Goome is an open goome session, a window, overlay or offscreen surface plus its event queue.
 type Goome struct {
-	g      *C.goome
-	strs   []*C.char
-	shots  map[int]int
-	frames int
-	uis    []*UI
+	g       *C.goome
+	strs    []*C.char
+	shots   map[int]int
+	frames  int
+	resizes int
+	uis     []*UI
 }
 
 func fits(sizes ...int) bool {
@@ -626,6 +627,7 @@ func (g *Goome) Resize(w, h int, scale float64) error {
 	if g.Closed() {
 		return errClosed
 	}
+	g.resizes++
 	return g.check(C.goome_resize(g.h(), C.int(w), C.int(h), C.double(scale)))
 }
 
@@ -637,7 +639,7 @@ func (g *Goome) LastFrame() (*Image, error) {
 	if g.Closed() {
 		return nil, errClosed
 	}
-	img := &Image{g: g, mon: -1, gen: g.frames}
+	img := &Image{g: g, mon: -1, gen: g.frames, sized: g.resizes}
 	if err := g.check(C.goome_frame(g.h(), &img.img)); err != nil {
 		return nil, err
 	}
@@ -686,10 +688,11 @@ func (g *Goome) FrameCopy(dst []byte, strideBytes int, format int, r *Rect) erro
 
 // Image is a grabbed screen image of 0xFFRRGGBB pixels that goome owns.
 type Image struct {
-	img C.goome_image
-	g   *Goome
-	mon int
-	gen int
+	img   C.goome_image
+	g     *Goome
+	mon   int
+	gen   int
+	sized int
 }
 
 // Capture grabs monitor mon, or just the rect r if it isn't nil. The pixels are good until the next grab of that monitor.
@@ -731,7 +734,7 @@ func (i *Image) Fresh() bool {
 		return false
 	}
 	if i.mon < 0 {
-		return i.gen == i.g.frames
+		return i.gen == i.g.frames && i.sized == i.g.resizes
 	}
 	return i.g.shots[i.mon] == i.gen
 }
