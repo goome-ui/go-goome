@@ -248,6 +248,7 @@ func FontCount() int { return int(C.goome_font_count()) }
 // Blit draws src onto c with the given alpha, shifted by dx and dy. Handy for caching something slow in your own canvas.
 func (c *Canvas) Blit(src *Canvas, alpha, dx, dy float64) {
 	C.goome_canvas_blit(c.ptr(), src.ptr(), C.double(alpha), C.double(dx), C.double(dy))
+	runtime.KeepAlive(src)
 }
 
 // ClipPush limits drawing to the x, y, w, h box. It snaps to whole pixels, goes 16 deep and Begin resets it.
@@ -315,23 +316,28 @@ func (c *Canvas) Poly(xy []float64, argb uint32) {
 // Bitmap draws b into the x, y, w, h box with the given corner radii and a tint color.
 func (c *Canvas) Bitmap(b *Bitmap, x, y, w, h float64, r Radii, tint uint32) {
 	C.goome_draw_bitmap(c.ptr(), b.ptr(), C.double(x), C.double(y), C.double(w), C.double(h), r.c(), C.uint32_t(tint))
+	runtime.KeepAlive(b)
 }
 
 // BitmapPart draws the sx, sy, sw, sh part of b (in bitmap pixels) into the x, y, w, h box with a tint color.
 func (c *Canvas) BitmapPart(b *Bitmap, sx, sy, sw, sh int, x, y, w, h float64, tint uint32) {
 	C.goome_draw_bitmap_part(c.ptr(), b.ptr(), C.int(sx), C.int(sy), C.int(sw), C.int(sh), C.double(x), C.double(y), C.double(w), C.double(h), C.uint32_t(tint))
+	runtime.KeepAlive(b)
 }
 
 // BitmapNine draws b as a nine-slice into the x, y, w, h box. l, t, r and bm are the border sizes in bitmap pixels.
 func (c *Canvas) BitmapNine(b *Bitmap, x, y, w, h, l, t, r, bm float64) {
 	C.goome_draw_bitmap_nine(c.ptr(), b.ptr(), C.double(x), C.double(y), C.double(w), C.double(h), C.double(l), C.double(t), C.double(r), C.double(bm))
+	runtime.KeepAlive(b)
 }
 
 // FontText draws s with font f at the given size and returns the width it drew. y is the top of the text, and a nil font means the built-in one.
 func (c *Canvas) FontText(f *Font, size, x, y float64, s string, argb uint32) float64 {
 	cs := C.CString(s)
 	defer C.free(unsafe.Pointer(cs))
-	return float64(C.goome_text(c.ptr(), f.raw(), C.double(size), C.double(x), C.double(y), cs, C.uint32_t(argb)))
+	w := float64(C.goome_text(c.ptr(), f.raw(), C.double(size), C.double(x), C.double(y), cs, C.uint32_t(argb)))
+	runtime.KeepAlive(f)
+	return w
 }
 
 // Bitmap is a picture in premultiplied ARGB pixels, made with LoadBitmap, BitmapFromBytes, BitmapFromARGB or NewBitmap. Call Free when you are done with it.
@@ -583,6 +589,7 @@ func (f *Font) Measure(text string, size float64) (w, h float64) {
 	defer C.free(unsafe.Pointer(cs))
 	var ch C.double
 	cw := C.goome_text_measure(f.raw(), C.double(size), cs, &ch)
+	runtime.KeepAlive(f)
 	return float64(cw), float64(ch)
 }
 
@@ -594,5 +601,7 @@ func (f *Font) Width(text string, size float64) float64 {
 
 // LineHeight returns the height of one line of text at the given size.
 func (f *Font) LineHeight(size float64) float64 {
-	return float64(C.goome_text_line_height(f.raw(), C.double(size)))
+	h := float64(C.goome_text_line_height(f.raw(), C.double(size)))
+	runtime.KeepAlive(f)
+	return h
 }
