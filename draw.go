@@ -43,7 +43,7 @@ func NewCanvas(w, h, stride int, scale float64) (*Canvas, error) {
 	if stride <= 0 {
 		stride = w
 	}
-	if w < 0 || h < 0 || stride < w {
+	if w < 0 || h < 0 || stride < w || !fits(h, stride) {
 		return nil, newErr(CodeArg, "bad canvas size %dx%d stride %d", w, h, stride)
 	}
 	if scale <= 0 {
@@ -211,7 +211,7 @@ func cPixels(px []uint32) (*C.uint32_t, func()) {
 
 // Image draws iw by ih ARGB pixels stretched into the x, y, w, h box. It returns an error if px is too small.
 func (c *Canvas) Image(x, y, w, h float64, px []uint32, iw, ih int) error {
-	if iw <= 0 || ih <= 0 || len(px) < iw*ih {
+	if iw <= 0 || ih <= 0 || !fits(iw, ih) || len(px) < iw*ih {
 		return newErr(CodeArg, "px is too small for %dx%d", iw, ih)
 	}
 	buf, done := cPixels(px[:iw*ih])
@@ -383,7 +383,7 @@ func BitmapFromBytes(data []byte) (*Bitmap, error) {
 
 // BitmapFromARGB makes a bitmap from plain ARGB pixels, w by h. The pixels are copied.
 func BitmapFromARGB(px []uint32, w, h int) (*Bitmap, error) {
-	if w <= 0 || h <= 0 || len(px) < w*h {
+	if w <= 0 || h <= 0 || !fits(w, h) || len(px) < w*h {
 		return nil, newErr(CodeArg, "px is too small for %dx%d", w, h)
 	}
 	buf, done := cPixels(px[:w*h])
@@ -401,7 +401,7 @@ func NewBitmap(w, h, stride int) (*Bitmap, error) {
 	if stride <= 0 {
 		stride = w
 	}
-	if w <= 0 || h <= 0 || stride < w {
+	if w <= 0 || h <= 0 || stride < w || !fits(h, stride) {
 		return nil, newErr(CodeArg, "bad bitmap size %dx%d stride %d", w, h, stride)
 	}
 	b := newBitmap()

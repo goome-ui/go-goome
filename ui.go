@@ -925,6 +925,9 @@ func (u *UI) Canvas() *Canvas {
 
 // Store returns n float64s kept for this id between frames, all zero the first time.
 func (u *UI) Store(id string, n int) []float64 {
+	if n <= 0 || n > 1<<24 {
+		return nil
+	}
 	p := C.goome_ui_store(u.h(), u.a.str(id), C.int(n))
 	if p == nil {
 		return nil

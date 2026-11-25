@@ -2,8 +2,10 @@ package goome
 
 import (
 	"fmt"
+	"runtime"
 	"strconv"
 	"testing"
+	"time"
 )
 
 const uiScript = "screen 400x360 1; 1 click 35,71; 2 click 29,106; 3 hold 40,157 6; 4 hover 120,157; " +
@@ -335,5 +337,42 @@ func TestGoThemePush(t *testing.T) {
 		u.PushTheme(th)
 		u.Label("themed")
 		u.End()
+	}
+}
+
+func TestUISloppyArguments(t *testing.T) {
+	g, err := OpenOffscreen(200, 200, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer g.Close()
+	u, err := g.NewUI()
+	if err != nil {
+		t.Fatal(err)
+	}
+	u.Begin(0)
+	func() {
+		b, err := BitmapFromARGB(make([]uint32, 64*64), 64, 64)
+		if err != nil {
+			t.Fatal(err)
+		}
+		u.Image(b, 64, 64, 0)
+	}()
+	for i := 0; i < 4; i++ {
+		runtime.GC()
+		time.Sleep(10 * time.Millisecond)
+	}
+	v := 0.5
+	u.SliderFmt("fmt", &v, 0, 1, "%s%s%n")
+	u.Number("fmt2", &v, 1, "%d")
+	u.DragFloat("fmt3", &v, 1, 0, 10, "%5s")
+	if s := u.Store("big", 1<<32+1); s != nil {
+		t.Errorf("store handed back %d numbers", len(s))
+	}
+	u.End()
+	for in, want := range map[string]string{"%.2f": "%.2f", "%5.1f%%": "%5.1f%%", "%d": "", "%f%f": "", "%": "", "plain": "plain"} {
+		if got := numFmt(in); got != want {
+			t.Errorf("numFmt(%q) = %q", in, got)
+		}
 	}
 }

@@ -10,6 +10,7 @@ import "C"
 import (
 	"errors"
 	"iter"
+	"math"
 	"unsafe"
 )
 
@@ -153,6 +154,15 @@ type Goome struct {
 	shots  map[int]int
 	frames int
 	uis    []*UI
+}
+
+func fits(sizes ...int) bool {
+	for _, v := range sizes {
+		if v < 0 || v > math.MaxInt32 {
+			return false
+		}
+	}
+	return true
 }
 
 func cstr(s string) *C.char {
@@ -654,15 +664,18 @@ func (g *Goome) FrameCopy(dst []byte, strideBytes int, format int, r *Rect) erro
 		defer C.free(unsafe.Pointer(cr))
 		*cr = r.c()
 	}
-	w, h := 0, 0
-	if r != nil {
-		w, h = r.W, r.H
-	} else if f, err := g.LastFrame(); err == nil {
-		w, h = f.W(), f.H()
-	} else {
+	f, err := g.LastFrame()
+	if err != nil {
 		return err
 	}
-	if h > 0 && (strideBytes < w*4 || len(dst) < strideBytes*(h-1)+w*4) {
+	w, h := f.W(), f.H()
+	if r != nil {
+		if !fits(r.X, r.Y, r.W, r.H) || r.X+r.W > w || r.Y+r.H > h {
+			return newErr(CodeArg, "that rect isnt inside the %dx%d frame", w, h)
+		}
+		w, h = r.W, r.H
+	}
+	if h > 0 && (strideBytes < w*4 || strideBytes > math.MaxInt32 || len(dst) < strideBytes*(h-1)+w*4) {
 		return newErr(CodeArg, "dst is too small for %dx%d with stride %d", w, h, strideBytes)
 	}
 	if len(dst) == 0 {
@@ -793,7 +806,7 @@ func (i *Image) SavePPM(path string) error {
 
 // SavePPM writes w by h pixels of px (stride in pixels) to path as a PPM file.
 func SavePPM(path string, px []uint32, w, h, stride int) error {
-	if w <= 0 || h <= 0 || stride < w || len(px) < (h-1)*stride+w {
+	if w <= 0 || h <= 0 || stride < w || !fits(h, stride) || len(px) < (h-1)*stride+w {
 		return newErr(CodeArg, "px is too small for %dx%d with stride %d", w, h, stride)
 	}
 	p := C.CString(path)
