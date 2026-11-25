@@ -94,6 +94,7 @@ type UI struct {
 	used   map[string]int
 	frame  int
 	canvas *Canvas
+	held   []*Bitmap
 	// Changed is true if the last widget changed its value.
 	Changed bool
 	// Entered is true if the last text input had Enter pressed in it.
@@ -242,6 +243,7 @@ func (u *UI) endFrame() {
 		u.canvas.c = nil
 		u.canvas = nil
 	}
+	u.held = nil
 	for k, e := range u.edits {
 		if e.seen < u.frame-600 {
 			C.free(unsafe.Pointer(e.buf))
@@ -363,11 +365,13 @@ func (u *UI) Button(label string) bool {
 
 // ImageButton draws a button showing the bitmap at w by h and returns true when it was clicked. id keeps it apart from other buttons.
 func (u *UI) ImageButton(id string, b *Bitmap, w, h float64) bool {
+	u.held = append(u.held, b)
 	return u.changed(C.goome_ui_image_button(u.h(), u.a.str(id), b.ptr(), C.double(w), C.double(h)))
 }
 
 // Image draws the bitmap at w by h with rounded corners of the given radius.
 func (u *UI) Image(b *Bitmap, w, h, radius float64) {
+	u.held = append(u.held, b)
 	C.goome_ui_image(u.h(), b.ptr(), C.double(w), C.double(h), C.double(radius))
 }
 
