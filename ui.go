@@ -414,6 +414,35 @@ func (u *UI) Radio(label string, v *int, value int) bool {
 	return r
 }
 
+func numFmt(format string) string {
+	convs := 0
+	for i := 0; i < len(format); i++ {
+		if format[i] != '%' {
+			continue
+		}
+		i++
+		if i < len(format) && format[i] == '%' {
+			continue
+		}
+		for i < len(format) && strings.IndexByte("-+ #0", format[i]) >= 0 {
+			i++
+		}
+		for i < len(format) && format[i] >= '0' && format[i] <= '9' {
+			i++
+		}
+		if i < len(format) && format[i] == '.' {
+			i++
+			for i < len(format) && format[i] >= '0' && format[i] <= '9' {
+				i++
+			}
+		}
+		if convs++; i >= len(format) || strings.IndexByte("fFeEgG", format[i]) < 0 || convs > 1 {
+			return ""
+		}
+	}
+	return format
+}
+
 // Slider draws a slider for v between min and max and returns true when it changed.
 func (u *UI) Slider(label string, v *float64, min, max float64) bool {
 	return u.SliderFmt(label, v, min, max, "")
@@ -422,7 +451,7 @@ func (u *UI) Slider(label string, v *float64, min, max float64) bool {
 // SliderFmt is Slider with a printf style format for the shown value.
 func (u *UI) SliderFmt(label string, v *float64, min, max float64, format string) bool {
 	p := u.cdouble(*v)
-	r := u.changed(C.goome_ui_slider(u.h(), u.a.str(label), p, C.double(min), C.double(max), u.a.optStr(format)))
+	r := u.changed(C.goome_ui_slider(u.h(), u.a.str(label), p, C.double(min), C.double(max), u.a.optStr(numFmt(format))))
 	*v = float64(*p)
 	return r
 }
@@ -728,7 +757,7 @@ func (u *UI) ListClip(count int, rowH float64) (first, last int) {
 // DragFloat draws a number you change by dragging, moving speed per pixel and clamped to min and max. format is an optional printf style format.
 func (u *UI) DragFloat(label string, v *float64, speed, min, max float64, format string) bool {
 	p := u.cdouble(*v)
-	r := u.changed(C.goome_ui_drag_float(u.h(), u.a.str(label), p, C.double(speed), C.double(min), C.double(max), u.a.optStr(format)))
+	r := u.changed(C.goome_ui_drag_float(u.h(), u.a.str(label), p, C.double(speed), C.double(min), C.double(max), u.a.optStr(numFmt(format))))
 	*v = float64(*p)
 	return r
 }
@@ -744,7 +773,7 @@ func (u *UI) DragInt(label string, v *int, speed float64, min, max int) bool {
 // Number draws a number field with step buttons that change v by step. format is an optional printf style format.
 func (u *UI) Number(label string, v *float64, step float64, format string) bool {
 	p := u.cdouble(*v)
-	r := u.changed(C.goome_ui_number(u.h(), u.a.str(label), p, C.double(step), u.a.optStr(format)))
+	r := u.changed(C.goome_ui_number(u.h(), u.a.str(label), p, C.double(step), u.a.optStr(numFmt(format))))
 	*v = float64(*p)
 	return r
 }
